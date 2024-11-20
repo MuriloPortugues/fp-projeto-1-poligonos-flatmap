@@ -7,6 +7,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
+import java.awt.geom.Point2D;
 
 import java.util.List;
 import java.util.function.BinaryOperator;
@@ -130,9 +131,32 @@ public class PoligonosApp extends Application {
      * @return uma lista de String indicando se o polígono é um "quadrilátero" (quadrado ou retângulo),
      * "triângulo", "pentágono", "hexágono" ou apenas um "polígono" geral quando tiver mais de 6 lados.
      */
-    protected List<String> tipoPoligonos(){
-        // TODO Apague esta linha e a próxima e implemente seu código
-        return List.of();
+    protected List<String> tipoPoligonos() {
+        return pontosPoligonos.stream()
+                .map(pontos -> {
+                    int nPontos = pontos.size();
+                    if (nPontos == 4) {
+                        // Verificar se é um quadrado
+                        double lado1 = Point2D.distance(pontos.get(0).x(), pontos.get(0).y(), pontos.get(1).x(), pontos.get(1).y());
+                        double lado2 = Point2D.distance(pontos.get(1).x(), pontos.get(1).y(), pontos.get(2).x(), pontos.get(2).y());
+                        double lado3 = Point2D.distance(pontos.get(2).x(), pontos.get(2).y(), pontos.get(3).x(), pontos.get(3).y());
+                        double lado4 = Point2D.distance(pontos.get(3).x(), pontos.get(3).y(), pontos.get(0).x(), pontos.get(0).y());
+
+                        // É um quadrado se todos os lados são iguais
+                        if (lado1 == lado2 && lado2 == lado3 && lado3 == lado4) {
+                            return "Quadrado";
+                        }
+                        return "Quadrilátero"; // Caso contrário, é apenas um quadrilátero
+                    }
+
+                    return switch (nPontos) {
+                        case 3 -> "Triângulo";
+                        case 5 -> "Pentágono";
+                        case 6 -> "Hexágono";
+                        default -> "Polígono";
+                    };
+                })
+                .toList();
     }
 
     /**
@@ -175,9 +199,26 @@ public class PoligonosApp extends Application {
      *
      * @return uma lista contendo o perímetro de cada polígono
      */
-    protected List<Double> perimetros(){
-        // TODO Apague esta linha e a próxima e implemente seu código
-        return List.of();
+    protected List<Double> perimetros() {
+        return pontosPoligonos.stream()
+                .map(pontos -> {
+                    // Fechando o polígono ao adicionar o primeiro ponto no final
+                    List<Point> pontosFechados = Stream.concat(
+                            pontos.stream(),
+                            Stream.of(pontos.get(0)) // Primeiro ponto para fechar o polígono
+                    ).toList();
+
+                    // Calcula o perímetro usando reduce
+                    Point pontoFinal = pontosFechados.stream()
+                            .reduce(
+                                    pontosFechados.get(pontosFechados.size() - 1), // Começa com o último ponto
+                                    Point::new // Construtor calcula e acumula a distância
+                            );
+
+                    return pontoFinal.distance();
+                })
+                .toList();
     }
+
 }
 
